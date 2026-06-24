@@ -42,8 +42,8 @@ pipeline {
                     sh """
                         ./mvnw sonar:sonar \
                         -Dsonar.host.url=https://sonarcloud.io \
-                        -Dsonar.organization=vargas-jc_demo-bank \
-                        -Dsonar.projectKey=vargas-jc \
+                        -Dsonar.organization=vargas-jc \
+                        -Dsonar.projectKey=demo-bank \
                         -Dsonar.token=$SONAR_TOKEN
                     """
                 }
