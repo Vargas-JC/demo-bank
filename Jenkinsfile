@@ -38,8 +38,14 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonarqube') {
-                    sh "./mvnw sonar:sonar"
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    sh """
+                        ./mvnw sonar:sonar \
+                        -Dsonar.host.url=https://sonarcloud.io \
+                        -Dsonar.organization=vargas-jc_demo-bank \
+                        -Dsonar.projectKey=vargas-jc \
+                        -Dsonar.token=$SONAR_TOKEN
+                    """
                 }
             }
         }
