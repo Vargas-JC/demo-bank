@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: demo-bank
+
+server:
+  port: 9099
