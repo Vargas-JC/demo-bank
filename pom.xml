@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.app.openx</groupId>
     <artifactId>demo-bank</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0</version>
     <packaging>war</packaging>
     <name>demo-bank</name>
     <description>demo-bank</description>
