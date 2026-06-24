@@ -50,41 +50,6 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-
-            steps {
-
-                sh """
-                    docker build \
-                    -t ${env.IMAGE_NAME}:${env.BUILD_NUMBER} .
-                """
-
-            }
-        }
-
-        stage('Push Docker Image') {
-
-            steps {
-
-                script {
-
-                    docker.withRegistry(
-                        'https://index.docker.io/v1/',
-                        'dockerhub-creds'
-                    ) {
-
-                        sh """
-                            docker push ${env.IMAGE_NAME}:${env.BUILD_NUMBER}
-                        """
-
-                    }
-
-                }
-
-            }
-
-        }
-
         stage('Deploy') {
 
             steps {
