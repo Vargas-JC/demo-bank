@@ -26,6 +26,7 @@ public class DemoBankApplication implements CommandLineRunner {
         userList.add(new User(1, "Edwin Vargas", "71633601", LocalDateTime.now()));
         userList.add(new User(2, "JC Alvarado", "71633609", LocalDateTime.now()));
         userList.add(new User(3, "Ivan Vargas", "71633600", LocalDateTime.now()));
+        userList.add(new User(4, "Yolanda Alvarado", "19548523", LocalDateTime.now()));
 
         //Add users
         System.out.println("\n Saving");
