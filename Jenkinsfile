@@ -2,10 +2,6 @@ pipeline {
 
 agent any
 
-tools {
-    maven 'Maven'
-}
-
 environment {
     APP_NAME = "demo-bank"
     IMAGE_NAME = "usuario/demo-bank"
