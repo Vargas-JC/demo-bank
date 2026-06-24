@@ -49,24 +49,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Deploy') {
-
-            steps {
-
-                sh """
-                    docker rm -f demo-bank || true
-
-                    docker run -d \
-                        --name demo-bank \
-                        -p 8080:8080 \
-                        ${env.IMAGE_NAME}:${env.BUILD_NUMBER}
-                """
-
-            }
-
-        }
-
     }
 
     post {
