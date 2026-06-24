@@ -37,18 +37,14 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-
-            environment {
-                SONAR_TOKEN = credentials('sonar-token')
-            }
-
             steps {
-                withSonarQubeEnv('sonarqube') {
-
-                    sh """
-                        ./mvnw sonar:sonar \
-                        -Dsonar.token=${SONAR_TOKEN}
-                    """
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    withSonarQubeEnv('sonarqube') {
+                        sh """
+                            ./mvnw sonar:sonar \
+                            -Dsonar.token=$SONAR_TOKEN
+                        """
+                    }
                 }
             }
         }
