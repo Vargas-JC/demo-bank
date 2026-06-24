@@ -1,133 +1,165 @@
 pipeline {
 
-agent any
+    agent any
 
-environment {
-    APP_NAME = "demo-bank"
-    IMAGE_NAME = "usuario/demo-bank"
-    DOCKER_CREDS = credentials('dockerhub-creds')
-}
-
-stages {
-
-    stage('Checkout') {
-        steps {
-            git branch: 'prod',
-                url: 'https://github.com/Vargas-JC/demo-bank.git'
-        }
+    environment {
+        APP_NAME   = 'demo-bank'
+        IMAGE_NAME = 'usuario/demo-bank'
     }
 
-    stage('Build') {
-        steps {
-            sh './mvnw clean package'
-        }
-    }
+    stages {
 
-    stage('Unit Tests') {
-        steps {
-            sh './mvnw test'
-        }
-    }
-
-    stage('SonarQube Analysis') {
-        environment {
-            SONAR_TOKEN = credentials('sonar-token')
-        }
-        steps {
-            withSonarQubeEnv('sonarqube') {
-                sh '''
-                ./mvnw sonar:sonar \
-                -Dsonar.token=$SONAR_TOKEN
-                '''
+        stage('Checkout') {
+            steps {
+                git(
+                    branch: 'prod',
+                    url: 'https://github.com/Vargas-JC/demo-bank.git'
+                )
             }
         }
-    }
 
-    stage('Quality Gate') {
-        steps {
-            timeout(time: 5, unit: 'MINUTES') {
-                waitForQualityGate abortPipeline: true
+        stage('Build') {
+            steps {
+                sh './mvnw clean package'
             }
         }
-    }
 
-    stage('Build Docker Image') {
-        steps {
-            sh '''
-            docker build \
-            -t $IMAGE_NAME:${BUILD_NUMBER} .
-            '''
+        stage('Unit Tests') {
+            steps {
+                sh './mvnw test'
+            }
         }
-    }
 
-    stage('Push Docker Image') {
-        steps {
-            script {
-                docker.withRegistry(
-                    'https://index.docker.io/v1/',
-                    'dockerhub-creds'
-                ) {
-                    sh '''
-                    docker push $IMAGE_NAME:${BUILD_NUMBER}
-                    '''
+        stage('SonarQube Analysis') {
+
+            environment {
+                SONAR_TOKEN = credentials('sonar-token')
+            }
+
+            steps {
+                withSonarQubeEnv('sonarqube') {
+
+                    sh """
+                        ./mvnw sonar:sonar \
+                        -Dsonar.token=${SONAR_TOKEN}
+                    """
                 }
             }
         }
-    }
 
-    stage('Deploy') {
-        steps {
-            sh '''
-            docker rm -f demo-bank || true
-            docker run -d \
-              --name demo-bank \
-              -p 8080:8080 \
-              $IMAGE_NAME:${BUILD_NUMBER}
-            '''
+        stage('Quality Gate') {
+            steps {
+
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+
+            }
         }
+
+        stage('Build Docker Image') {
+
+            steps {
+
+                sh """
+                    docker build \
+                    -t ${env.IMAGE_NAME}:${env.BUILD_NUMBER} .
+                """
+
+            }
+        }
+
+        stage('Push Docker Image') {
+
+            steps {
+
+                script {
+
+                    docker.withRegistry(
+                        'https://index.docker.io/v1/',
+                        'dockerhub-creds'
+                    ) {
+
+                        sh """
+                            docker push ${env.IMAGE_NAME}:${env.BUILD_NUMBER}
+                        """
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        stage('Deploy') {
+
+            steps {
+
+                sh """
+                    docker rm -f demo-bank || true
+
+                    docker run -d \
+                        --name demo-bank \
+                        -p 8080:8080 \
+                        ${env.IMAGE_NAME}:${env.BUILD_NUMBER}
+                """
+
+            }
+
+        }
+
     }
-}
 
-post {
+    post {
 
-    success {
-        echo "Deploy exitoso"
+        success {
 
-        emailext(
-            subject: "SUCCESS - ${APP_NAME} Build #${BUILD_NUMBER}",
-            body: """
+            echo 'Deploy exitoso'
+
+            emailext(
+                subject: "SUCCESS - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
 Pipeline ejecutado correctamente.
 
-Proyecto: ${APP_NAME}
-Build: ${BUILD_NUMBER}
-Estado: SUCCESS
+Proyecto: ${env.APP_NAME}
 
-Docker Image: ${IMAGE_NAME}:${BUILD_NUMBER}
+Build: ${env.BUILD_NUMBER}
 
-Ver Jenkins:
-${BUILD_URL}
+Docker Image:
+${env.IMAGE_NAME}:${env.BUILD_NUMBER}
+
+Jenkins:
+${env.BUILD_URL}
 """
-)
-}
-    failure {
-        echo "Pipeline falló"
+            )
 
-        emailext(
-            subject: "FAILED - ${APP_NAME} Build #${BUILD_NUMBER}",
-            body: """
+        }
+
+        failure {
+
+            echo 'Pipeline falló'
+
+            emailext(
+                subject: "FAILED - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
 Pipeline FALLÓ.
 
-Proyecto: ${APP_NAME}
-Build: ${BUILD_NUMBER}
-Estado: FAILURE
+Proyecto: ${env.APP_NAME}
+
+Build: ${env.BUILD_NUMBER}
 
 Revisar logs:
-${BUILD_URL}
+${env.BUILD_URL}
 """
-)
-}
-    always {
-        cleanWs()
+            )
+
+        }
+
+        always {
+            cleanWs()
+        }
+
     }
-}
+
 }
